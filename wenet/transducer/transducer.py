@@ -108,7 +108,7 @@ class Transducer(nn.Module):
         loss = loss.sum()
         if loss_att is not None:
             loss = loss + (1 - self.transducer_weight) * loss_att.sum()
-        return loss
+        return loss, loss_att
 
     def _calc_att_loss(
         self,

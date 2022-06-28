@@ -75,8 +75,8 @@ class Executor:
                     # The more details about amp can be found in
                     # https://pytorch.org/docs/stable/notes/amp_examples.html
                     with torch.cuda.amp.autocast(scaler is not None):
-                        loss = model(feats, feats_lengths, target,
-                                     target_lengths)
+                        loss, loss_att = model(feats, feats_lengths, target,
+                                               target_lengths)
                         loss = loss / accum_grad
                     if use_amp:
                         scaler.scale(loss).backward()
@@ -112,6 +112,8 @@ class Executor:
                     log_str = 'TRAIN Batch {}/{} loss {:.6f} '.format(
                         epoch, batch_idx,
                         loss.item() * accum_grad)
+                    if loss_att is not None:
+                        log_str += 'loss_att {:.6f} '.format(loss_att.item())
                     log_str += 'lr {:.8f} rank {}'.format(lr, rank)
                     logging.debug(log_str)
 
@@ -135,13 +137,16 @@ class Executor:
                 num_utts = target_lengths.size(0)
                 if num_utts == 0:
                     continue
-                loss = model(feats, feats_lengths, target, target_lengths)
+                loss, loss_att = model(feats, feats_lengths, target,
+                                       target_lengths)
                 if torch.isfinite(loss):
                     num_seen_utts += num_utts
                     total_loss += loss.item() * num_utts
                 if batch_idx % log_interval == 0:
                     log_str = 'CV Batch {}/{} loss {:.6f} '.format(
                         epoch, batch_idx, loss.item())
+                    if loss_att is not None:
+                        log_str += 'loss_att {:.6f} '.format(loss_att.item())
                     log_str += 'history loss {:.6f}'.format(total_loss /
                                                             num_seen_utts)
                     log_str += ' rank {}'.format(rank)

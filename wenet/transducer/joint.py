@@ -22,7 +22,7 @@ class TransducerJoint(torch.nn.Module):
 
         self.activatoin = get_activation(activation)
         self.prejoin_linear = prejoin_linear
-        self.postjoni_linear = postjoin_linear
+        self.postjoin_linear = postjoin_linear
         self.joint_mode = joint_mode
 
         if self.prejoin_linear:
@@ -31,7 +31,7 @@ class TransducerJoint(torch.nn.Module):
             # just for torchscript
             self.post_ffn = nn.Linear(enc_output_size, join_dim)
 
-        if self.postjoni_linear:
+        if self.postjoin_linear:
             # post join means: enc_output_size == pred_output_size
             assert enc_output_size == pred_output_size
             self.post_ffn = nn.Linear(enc_output_size, join_dim)
@@ -57,7 +57,7 @@ class TransducerJoint(torch.nn.Module):
         _ = self.joint_mode
         out = enc_out + pred_out  # [B,T,U,V]
 
-        if self.postjoni_linear:
+        if self.postjoin_linear:
             out = self.post_ffn(out)
 
         out = self.activatoin(out)
