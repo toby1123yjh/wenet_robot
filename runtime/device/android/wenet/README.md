@@ -6,6 +6,7 @@ This Android demo shows we can run on-device streaming ASR with WeNet. You can d
 
 * [Chinese ASR Demo APK, with model trained on AIShell data](http://mobvoi-speech-public.ufile.ucloud.cn/public/wenet/aishell/20210202_app.apk)
 * [English ASR Demo APK, with model trained on GigaSpeech data](http://mobvoi-speech-public.ufile.ucloud.cn/public/wenet/gigaspeech/20210823_app.apk)
+* [English ASR Demo APK, with model trained on LibriSpeech data (To be added)]()
 
 ## Build your APK from source code
 
@@ -13,18 +14,16 @@ This Android demo shows we can run on-device streaming ASR with WeNet. You can d
 
 You can use our pretrained model (click the following link to download):
 
-[AISHELL-1](https://wenet-1256283475.cos.ap-shanghai.myqcloud.com/models/aishell/20210601_u2%2B%2B_conformer_libtorch.tar.gz)
-| [AISHELL-2](https://wenet-1256283475.cos.ap-shanghai.myqcloud.com/models/aishell2/20210618_u2pp_conformer_libtorch.tar.gz)
-| [GigaSpeech](https://wenet-1256283475.cos.ap-shanghai.myqcloud.com/models/gigaspeech/20210728_u2pp_conformer_libtorch.tar.gz)
-| [LibriSpeech](https://wenet-1256283475.cos.ap-shanghai.myqcloud.com/models/librispeech/20210610_u2pp_conformer_libtorch.tar.gz)
-| [Multi-CN](https://wenet-1256283475.cos.ap-shanghai.myqcloud.com/models/multi_cn/20210815_unified_conformer_libtorch.tar.gz)
-
+* [Chinese model trained on AIshell](http://mobvoi-speech-public.ufile.ucloud.cn/public/wenet/aishell/20210601_unified_transformer_device.tar.gz)
+* [Model trained on AISHELL-2](http://mobvoi-speech-public.ufile.ucloud.cn/public/wenet/aishell2/20210602_unified_transformer_device.tar.gz)
+* [Model trained on Multi-CN](http://mobvoi-speech-public.ufile.ucloud.cn/public/wenet/multi_cn/20210815_unified_conformer_device.tar.gz)
+* [Model trained on GigaSpeech](http://mobvoi-speech-public.ufile.ucloud.cn/public/wenet/gigaspeech/20210823_u2pp_transformer_device.tar.gz)
 
 Or you can train your own model using WeNet training pipeline on your data.
 
 ### 2) Build APK
 
-When your model is ready, put `final.zip` and `units.txt` into Android assets (`app/src/main/assets`) folder,
+When your model is ready, put `final.zip` and `words.txt` into Android assets (`app/src/main/assets`) folder,
 then just build and run the APK. Here is a gif demo, which shows how our on-device streaming e2e ASR runs with low latency.
 Please note the wifi and data has been disabled in the demo so there is no network connection ^\_^.
 
@@ -45,6 +44,7 @@ Step 3, push your binary and the dynamic library to `/data/local/tmp` as follows
 
 ``` sh
 adb push app/.cxx/cmake/release/arm64-v8a/decoder_main /data/local/tmp
+adb push app/.cxx/cmake/release/arm64-v8a/gflags-build/lib/libgflags.so /data/local/tmp
 adb push app/build/pytorch_android-1.10.0.aar/jni/arm64-v8a/* /data/local/tmp
 ```
 

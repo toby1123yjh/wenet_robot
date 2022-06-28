@@ -5,15 +5,15 @@ Wenet 基于 pytorch 框架进行语音识别模型训练，而在使用训练�
 
 ## 使用docker启动语音识别服务
 
-最简单的使用 Wenet 的方式是通过官方提供的 docker 镜像 `wenetorg/wenet:mini` 来启动服务。
+最简单的使用 Wenet 的方式是通过官方提供的 docker 镜像 `mobvoiwenet/wenet:mini` 来启动服务。
 
 下面的命令先下载官方提供的预训练模型，并启动 docker 服务，加载模型，提供 websocket 协议的语音识别服务。
 ``` sh
 cd wenet/runtime/server/x86
-wget https://wenet-1256283475.cos.ap-shanghai.myqcloud.com/models/aishell/20210601_u2%2B%2B_conformer_libtorch.tar.gz
-tar -xf 20210602_u2++_conformer_libtorch.tar.gz
-model_dir=$PWD/20210602_u2++_conformer_libtorch
-docker run --rm -it -p 10086:10086 -v $model_dir:/home/wenet/model wenetorg/wenet-mini:latest bash /home/run.sh
+wget http://mobvoi-speech-public.ufile.ucloud.cn/public/wenet/aishell2/20210602_unified_transformer_server.tar.gz
+tar -xf 20210602_unified_transformer_server.tar.gz
+model_dir=$PWD/20210602_unified_transformer_server
+docker run --rm -it -p 10086:10086 -v $model_dir:/home/wenet/model mobvoiwenet/wenet:mini bash /home/run.sh
 ```
 
 `$model_dir` 是模型在本机的目录，将被映射到容器的 `/home/wenet/model` 目录，然后启动 web 服务。
@@ -51,8 +51,8 @@ mkdir build && cd build && cmake -DGRPC=ON .. && cmake --build .
 
 ``` sh
 # 当前目录为 wenet/runtime/server/x86
-wget https://wenet-1256283475.cos.ap-shanghai.myqcloud.com/models/aishell/20210601_u2%2B%2B_conformer_libtorch.tar.gz
-tar -xf 20210602_u2++_conformer_libtorch.tar.gz
+wget http://mobvoi-speech-public.ufile.ucloud.cn/public/wenet/aishell2/20210602_unified_transformer_server.tar.gz
+tar -xf 20210602_unified_transformer_server.tar.gz
 ```
 
 ## 本地wav文件识别
@@ -68,20 +68,21 @@ tar -xf 20210602_u2++_conformer_libtorch.tar.gz
 
 export GLOG_logtostderr=1
 export GLOG_v=2
-wav_path=test.wav
+wget http://mobvoi-speech-public.ufile.ucloud.cn/public/wenet/test.wav
+wav_path=./test.wav
 model_dir=./20210602_unified_transformer_server
-./build/bin/decoder_main \
+./build/decoder_main \
     --chunk_size -1 \
     --wav_path $wav_path \
     --model_path $model_dir/final.zip \
-    --unit_path $model_dir/units.txt 2>&1 | tee log.txt
+    --dict_path $model_dir/words.txt 2>&1 | tee log.txt
 ```
 
 `decoder_main`工具支持两种wav文件模式：
  * 使用`--wav_path`指定单个文件，一次识别单个wav文件。
  * 使用`--wav_scp`指定一个.scp格式的wav列表，一次识别多个wav文件。
 
-执行 `./build/bin/decoder_main --help`  可以了解更多的参数意义。
+执行 `./build/decoder_main --help`  可以了解更多的参数意义。
 
 ## 基于websocket的在线识别服务
 
@@ -97,11 +98,11 @@ model_dir=./20210602_unified_transformer_server
 export GLOG_logtostderr=1
 export GLOG_v=2
 model_dir=./20210602_unified_transformer_server
-./build/bin/websocket_server_main \
+./build/websocket_server_main \
     --port 10086 \
     --chunk_size 16 \
     --model_path $model_dir/final.zip \
-    --unit_path $model_dir/units.txt 2>&1 | tee server.log
+    --dict_path $model_dir/words.txt 2>&1 | tee server.log
 ```
 
 上述服务启动后，会监听 10086 端口。若想使用其他端口，请修改 `--port` 对应的参数.
@@ -117,9 +118,10 @@ model_dir=./20210602_unified_transformer_server
 ```sh
 export GLOG_logtostderr=1
 export GLOG_v=2
-wav_path=test.wav
-./build/bin/websocket_client_main \
-    --hostname 127.0.0.1 --port 10086 \
+wget http://mobvoi-speech-public.ufile.ucloud.cn/public/wenet/test.wav
+wav_path=./test.wav
+./build/websocket_client_main \
+    --host 127.0.0.1 --port 10086 \
     --wav_path $wav_path 2>&1 | tee client.log
 ```
 
@@ -129,7 +131,7 @@ wav_path=test.wav
 
 注意 `--port` 需要设置为服务端使用的端口号。
 
-如果有两台机器，也可以在一台机器上运行服务端，在另一台机器运行客户端，此时 `--hostname` 要指定为服务端所在机器的可访问 ip。
+如果有两台机器，也可以在一台机器上运行服务端，在另一台机器运行客户端，此时 `--host` 要指定为服务端所在机器的可访问 ip。
 
 **网页版 websocket 客户端**
 
@@ -150,7 +152,7 @@ grep "Rescoring cost latency" server.log | awk '{sum += $NF}; END {print sum/NR}
 如果遇到问题比如无法编译，我们提供了 docker 镜像用于直接执行示例。需要先安装好 docker，运行如下命令，进入 docker 容器环境。
 
 ``` sh
-docker run --rm -it mobvoiwenet/wenet:latest bash
+docker run --rm -it mobvoiwenet/wenet:v0.5.0 bash
 ```
 
 该镜像包含了编译过程中所依赖的所有第三方库、编译好的文件和预训练模型。
